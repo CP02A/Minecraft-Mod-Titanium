@@ -29,6 +29,12 @@ neoForge {
             programArgument '--nogui'
             gameDirectory = this.mkdir(this.file('runs/server'))
         }
+        // Boots a server, runs the titanium game tests (if any) and exits; used as a loading smoke test
+        gameTestServer {
+            type = 'gameTestServer'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            gameDirectory = this.mkdir(this.file('runs/gametest'))
+        }
     }
     mods {
         "${mod_id}" {

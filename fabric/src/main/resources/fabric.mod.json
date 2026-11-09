@@ -1,0 +1,39 @@
+{
+    "schemaVersion": 1,
+    "id": "${mod_id}",
+    "version": "${version}",
+    "name": "${mod_name}",
+    "description": "${description}",
+    "authors": [
+        "TheCodedOne",
+        "Buuz135"
+    ],
+    "contact": {
+        "sources": "https://github.com/InnovativeOnlineIndustries/Titanium",
+        "issues": "https://github.com/InnovativeOnlineIndustries/Titanium/issues"
+    },
+    "license": "${license}",
+    "environment": "*",
+    "entrypoints": {
+        "main": [
+            "com.hrznstudio.titanium.fabric.TitaniumFabric"
+        ],
+        "client": [
+            "com.hrznstudio.titanium.fabric.TitaniumFabricClient"
+        ],
+        "jei_mod_plugin": [
+            "com.hrznstudio.titanium.jei.TitaniumJEIPlugin"
+        ]
+    },
+    "accessWidener": "${mod_id}.accesswidener",
+    "depends": {
+        "fabricloader": ">=${fabric_loader_version}",
+        "fabric-api": "*",
+        "forgeconfigapiport": "*",
+        "minecraft": "~${minecraft_version}",
+        "java": ">=${java_version}"
+    },
+    "suggests": {
+        "jei": "*"
+    }
+}

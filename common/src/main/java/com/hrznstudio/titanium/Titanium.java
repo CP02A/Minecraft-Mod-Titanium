@@ -76,13 +76,14 @@ public class Titanium extends ModuleController {
                 .persistent(Codec.unboundedMap(Codec.STRING, Codec.FLOAT))
                 .build());
         if (Services.PLATFORM.isDevelopmentEnvironment()) { //ENABLE IN DEV
-            TestSerializableRecipe.SERIALIZER = getRegistries().registerGeneric(Registries.RECIPE_SERIALIZER, "test_serializer", () -> GenericSerializer.create(TestSerializableRecipe.class, TestSerializableRecipe.RECIPE_TYPE::value, TestSerializableRecipe.CODEC));
+            // Registered before the serializer, objects are registered right away on Fabric
             TestSerializableRecipe.RECIPE_TYPE = getRegistries().registerGeneric(Registries.RECIPE_TYPE, "test_recipe_type", () -> new RecipeType<>() {
                 @Override
                 public String toString() {
                     return MODID + ":test_recipe_type";
                 }
             });
+            TestSerializableRecipe.SERIALIZER = getRegistries().registerGeneric(Registries.RECIPE_SERIALIZER, "test_serializer", () -> GenericSerializer.create(TestSerializableRecipe.class, () -> TestSerializableRecipe.RECIPE_TYPE.value(), TestSerializableRecipe.CODEC));
             TestBlock.TEST = getRegistries().registerBlockWithTile("block_test", () -> (TestBlock) new TestBlock(), null);
             TwentyFourTestBlock.TEST = getRegistries().registerBlockWithTile("block_twenty_four_test", () -> (TwentyFourTestBlock) new TwentyFourTestBlock(), null);
             AssetTestBlock.TEST = getRegistries().registerBlockWithTile("block_asset_test", () -> (AssetTestBlock) new AssetTestBlock(), null);

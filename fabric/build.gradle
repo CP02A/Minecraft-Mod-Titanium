@@ -10,6 +10,8 @@ dependencies {
     implementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
     implementation("net.fabricmc.fabric-api:fabric-api:${fabric_version}")
     implementation("fuzs.forgeconfigapiport:forgeconfigapiport-fabric:${forgeconfigapiport_version}")
+    // Titanium uses the javax.annotation annotations, which Minecraft doesn't expose on Fabric
+    compileOnly('com.google.code.findbugs:jsr305:3.0.2')
 
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-fabric-api:${jei_version}"
@@ -20,6 +22,12 @@ loom {
     def aw = rootProject.file("common/src/main/resources/${mod_id}.accesswidener")
     if (aw.exists()) {
         accessWidenerPath.set(aw)
+    }
+    // Groups the classes and resources of the mod in dev, so the mod root paths contain both
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+        }
     }
     runs {
         client {
@@ -33,6 +41,13 @@ loom {
             setConfigName('Fabric Server')
             ideConfigGenerated(true)
             runDir('runs/server')
+        }
+        // Boots a server, runs the game tests (if any) and exits; used as a loading smoke test
+        gametest {
+            server()
+            setConfigName('Fabric Game Test Server')
+            vmArg('-Dfabric-api.gametest')
+            runDir('runs/gametest')
         }
     }
 }
