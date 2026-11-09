@@ -40,7 +40,7 @@ pipeline {
   }
   post {
     always {
-      archive 'build/libs/**.jar'
+      archive '*/build/libs/**.jar'
     }
   }
 }

@@ -1,0 +1,100 @@
+/*
+ * This file is part of Titanium
+ * Copyright (C) 2026, Horizon Studio <contact@hrznstudio.com>.
+ *
+ * This code is licensed under GNU Lesser General Public License v3.0, the full license text can be found in LICENSE.txt
+ */
+
+package com.hrznstudio.titanium.client.screen.addon;
+
+import com.hrznstudio.titanium.Titanium;
+import com.hrznstudio.titanium.api.client.AssetTypes;
+import com.hrznstudio.titanium.api.filter.FilterSlot;
+import com.hrznstudio.titanium.client.screen.asset.IAssetProvider;
+import com.hrznstudio.titanium.filter.ItemStackFilter;
+import com.hrznstudio.titanium.network.locator.ILocatable;
+import com.hrznstudio.titanium.network.messages.ButtonClickNetworkMessage;
+import com.hrznstudio.titanium.util.AssetUtil;
+import com.hrznstudio.titanium.util.ItemStackSerialization;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
+
+import java.awt.*;
+import java.util.Objects;
+
+public class ItemstackFilterScreenAddon extends BasicScreenAddon {
+
+    private final ItemStackFilter filter;
+
+    public ItemstackFilterScreenAddon(ItemStackFilter filter) {
+        super(filter.getFilterSlots()[0].getX(), filter.getFilterSlots()[0].getY());
+        this.filter = filter;
+    }
+
+    @Override
+    public int getXSize() {
+        return filter.getFilterSlots()[filter.getFilterSlots().length - 1].getX() + 17;
+    }
+
+    @Override
+    public int getYSize() {
+        return filter.getFilterSlots()[filter.getFilterSlots().length - 1].getY() + 17;
+    }
+
+    @Override
+    public void drawBackgroundLayer(GuiGraphicsExtractor guiGraphics, Screen screen, IAssetProvider provider, int guiX, int guiY, int mouseX, int mouseY, float partialTicks) {
+        for (FilterSlot<ItemStack> filterSlot : filter.getFilterSlots()) {
+            if (filterSlot != null) {
+                Color color = new Color(filterSlot.getColor());
+                AssetUtil.drawAsset(guiGraphics, screen, Objects.requireNonNull(provider.getAsset(AssetTypes.SLOT)), guiX + filterSlot.getX(), guiY + filterSlot.getY());
+                guiGraphics.fill(guiX + filterSlot.getX() + 1, guiY + filterSlot.getY() + 1,
+                    guiX + filterSlot.getX() + 17, guiY + filterSlot.getY() + 17, new Color(color.getRed(), color.getGreen(), color.getBlue(), 256 / 2).getRGB());
+                if (!filterSlot.getFilter().isEmpty()) {
+                    guiGraphics.item(filterSlot.getFilter(), filterSlot.getX() + guiX + 1, filterSlot.getY() + guiY + 1);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void drawForegroundLayer(GuiGraphicsExtractor guiGraphics, Screen screen, IAssetProvider provider, int guiX, int guiY, int mouseX, int mouseY, float partialTicks) {
+        for (FilterSlot<ItemStack> filterSlot : filter.getFilterSlots()) {
+            if (filterSlot != null && mouseX > (guiX + filterSlot.getX() + 1) && mouseX < (guiX + filterSlot.getX() + 16) && mouseY > (guiY + filterSlot.getY() + 1) && mouseY < (guiY + filterSlot.getY() + 16)) {
+                //guiGraphics.translate(0, 0, 200);
+                guiGraphics.fill(filterSlot.getX() + 1, filterSlot.getY() + 1, filterSlot.getX() + 17, filterSlot.getY() + 17, -2130706433);
+                //guiGraphics.translate(0, 0, -200);
+                if (!filterSlot.getFilter().isEmpty() && Minecraft.getInstance().player.containerMenu.getCarried().isEmpty()) {
+                    guiGraphics.setComponentTooltipForNextFrame(Minecraft.getInstance().font, Screen.getTooltipFromItem(Minecraft.getInstance(), filterSlot.getFilter()), mouseX, mouseY);
+                }
+            }
+        }
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        Screen screen = Minecraft.getInstance().gui.screen();
+        if (screen instanceof AbstractContainerScreen abstractContainerScreen && abstractContainerScreen.getMenu() instanceof ILocatable) {
+            if (!isMouseOver(mouseX, mouseY))
+                return false;
+            ILocatable locatable = (ILocatable) ((AbstractContainerScreen) screen).getMenu();
+            mouseX -= abstractContainerScreen.leftPos;
+            mouseY -= abstractContainerScreen.topPos;
+            for (FilterSlot<ItemStack> filterSlot : filter.getFilterSlots()) {
+                if (filterSlot != null && mouseX > filterSlot.getX() + 1 && mouseX < filterSlot.getX() + 16 && mouseY > filterSlot.getY() + 1 && mouseY < +filterSlot.getY() + 16) {
+                    CompoundTag compoundNBT = new CompoundTag();
+                    compoundNBT.putString("Name", filter.getName());
+                    compoundNBT.putInt("Slot", filterSlot.getFilterID());
+                    compoundNBT.put("Filter", ItemStackSerialization.save(Minecraft.getInstance().level.registryAccess(), Minecraft.getInstance().player.containerMenu.getCarried()));
+                    Titanium.NETWORK.sendToServer(new ButtonClickNetworkMessage(locatable.getLocatorInstance(), -2, compoundNBT));
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+}

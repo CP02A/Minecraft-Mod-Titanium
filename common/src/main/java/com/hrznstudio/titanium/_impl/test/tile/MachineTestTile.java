@@ -1,0 +1,103 @@
+/*
+ * This file is part of Titanium
+ * Copyright (C) 2026, Horizon Studio <contact@hrznstudio.com>.
+ *
+ * This code is licensed under GNU Lesser General Public License v3.0, the full license text can be found in LICENSE.txt
+ */
+
+package com.hrznstudio.titanium._impl.test.tile;
+
+import net.minecraft.tags.TagKey;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import com.hrznstudio.titanium.Titanium;
+import com.hrznstudio.titanium._impl.test.MachineTestBlock;
+import com.hrznstudio.titanium.annotation.Save;
+import com.hrznstudio.titanium.api.filter.FilterSlot;
+import com.hrznstudio.titanium.block.BasicTileBlock;
+import com.hrznstudio.titanium.block.tile.MachineTile;
+import com.hrznstudio.titanium.component.bundle.TankInteractionBundle;
+import com.hrznstudio.titanium.component.inventory.InventoryComponent;
+import com.hrznstudio.titanium.filter.ItemStackFilter;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
+
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Optional;
+
+public class MachineTestTile extends MachineTile<MachineTestTile> {
+
+    private static final TagKey<net.minecraft.world.item.Item> STORAGE_BLOCKS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "storage_blocks"));
+
+    @Save
+    private ItemStackFilter filter;
+    @Save
+    private TankInteractionBundle<MachineTestTile> tankBundle;
+    @Save
+    private InventoryComponent<MachineTestTile> movingSlot;
+
+    @Save
+    private ItemStackFilter restrictedFilter;
+
+    public MachineTestTile(BlockPos blockPos, BlockState state) {
+        super((BasicTileBlock<MachineTestTile>) MachineTestBlock.TEST.getBlock(), MachineTestBlock.TEST.type().get(), blockPos, state);
+        addFilter(this.filter = new ItemStackFilter("filter", 12) {
+            @Override
+            public void onContentChanged() {
+                syncObject(filter);
+            }
+        });
+        int pos = 0;
+        for (int y = 0; y < 4; y++) {
+            for (int x = 0; x < 3; x++) {
+                FilterSlot slot = new FilterSlot<>(20 + x * 18, 20 + y * 18, pos, ItemStack.EMPTY);
+                slot.setColor(DyeColor.CYAN);
+                this.filter.setFilter(pos, slot);
+                ++pos;
+            }
+        }
+        this.setShowEnergy(false);
+        this.addFilter(this.restrictedFilter = new ItemStackFilter("restricted_filter", 1){
+            @Override
+            public boolean acceptsAsFilter(ItemStack filter) {
+                return filter.is(STORAGE_BLOCKS);
+            }
+
+            @Override
+            public void onContentChanged() {
+                syncObject(restrictedFilter);
+            }
+        });
+        FilterSlot<ItemStack> restrictedSlot = new FilterSlot<>(20 + (3*18) + 20, 20, 0, ItemStack.EMPTY);
+        this.restrictedFilter.setFilter(0, restrictedSlot);
+        this.addBundle(tankBundle = new TankInteractionBundle<>(() -> Optional.ofNullable(getFluidHandler(null)), 175, 94, this, 10));
+        this.addInventory(this.movingSlot = new InventoryComponent<MachineTestTile>("moving_slot", 0, 0, 1)
+            .setInputFilter((stack, integer) -> this.movingSlot.getSlotVisiblePredicate().test(integer))
+            //.setSlotVisiblePredicate(integer -> this.level.getGameTime() % 100 > 40)
+            .setOutputFilter((itemStack, integer) -> false));
+        //.setSlotPosition(integer -> Pair.of((int) this.level.getGameTime() % 100, 50 + (int) this.level.getGameTime() % 50 - 25)));
+    }
+
+    @Nonnull
+    @Override
+    public MachineTestTile getSelf() {
+        return this;
+    }
+
+    @Override
+    @ParametersAreNonnullByDefault
+    public InteractionResult onActivated(Player player, InteractionHand hand, Direction facing, double hitX, double hitY, double hitZ) {
+        if (super.onActivated(player, hand, facing, hitX, hitY, hitZ) == InteractionResult.SUCCESS) {
+            openGui(player);
+            return InteractionResult.SUCCESS;
+        }
+        return InteractionResult.SUCCESS;
+    }
+}

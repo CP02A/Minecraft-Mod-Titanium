@@ -1,0 +1,89 @@
+plugins {
+    id 'multiloader-loader'
+    id 'net.neoforged.moddev'
+    id 'com.modrinth.minotaur'
+    id 'net.darkhax.curseforgegradle'
+}
+
+neoForge {
+    version = neoforge_version
+    def at = rootProject.file('common/src/main/resources/META-INF/accesstransformer.cfg')
+    if (at.exists()) {
+        accessTransformers.from(at.absolutePath)
+    }
+    runs {
+        configureEach {
+            ideName = "NeoForge ${it.name.capitalize()} (${project.path})"
+        }
+        client {
+            client()
+            gameDirectory = this.mkdir(this.file('runs/client'))
+        }
+        data {
+            clientData()
+            gameDirectory = this.mkdir(this.file('runs/data'))
+            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', rootProject.file('common/src/main/resources/').getAbsolutePath()
+        }
+        server {
+            server()
+            programArgument '--nogui'
+            gameDirectory = this.mkdir(this.file('runs/server'))
+        }
+    }
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+dependencies {
+    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
+    runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+}
+
+tasks.register('publishCurseForge', net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+    apiToken = System.env['CURSE_API']
+
+    def mainFile = upload(287342, jar)
+    mainFile.releaseType = 'beta'
+    mainFile.changelog = 'https://github.com/InnovativeOnlineIndustries/Titanium/blob/26.3/CHANGELOG.md'
+    mainFile.changelogType = 'markdown'
+    mainFile.addModLoader('NeoForge')
+    mainFile.addGameVersion(minecraft_version)
+    mainFile.addEnvironment('Client', 'Server')
+}
+
+tasks.modrinth.enabled = System.env['MODRINTH_TOKEN'] != null
+
+modrinth {
+    token = System.getenv('MODRINTH_TOKEN')
+    projectId = '1Ro7m06l'
+    versionType = 'beta'
+    uploadFile = jar
+    gameVersions = [minecraft_version]
+    loaders = ['neoforge']
+    changelog = 'https://github.com/InnovativeOnlineIndustries/Titanium/blob/26.3/CHANGELOG.md'
+}
+
+// Implement mcgradleconventions loader attribute
+def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+['apiElements', 'runtimeElements', 'sourcesElements'].each { variant ->
+    configurations.named(variant) {
+        attributes {
+            attribute(loaderAttribute, 'neoforge')
+        }
+    }
+}
+sourceSets.configureEach {
+    [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName, it.getTaskName(null, 'jarJar')].each { variant ->
+        configurations.named(variant) {
+            attributes {
+                attribute(loaderAttribute, 'neoforge')
+            }
+        }
+    }
+}
