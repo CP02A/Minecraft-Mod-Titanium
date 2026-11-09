@@ -23,6 +23,7 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -31,6 +32,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class BasicContainerScreen<T extends AbstractContainerMenu> extends AbstractContainerScreen<T> implements IScreenAddonConsumer {
@@ -108,6 +110,40 @@ public class BasicContainerScreen<T extends AbstractContainerMenu> extends Abstr
                 guiGraphics.setComponentTooltipForNextFrame(this.font, iScreenAddon.getTooltipLines(), mouseX, mouseY);
             }
         }
+    }
+
+    private boolean skipChildClickDispatch = false;
+
+    /**
+     * Since 26.x vanilla only offers a click to the first child under the mouse and consumes the click even if that
+     * child ignores it. Titanium addons overlap (backgrounds, bars, panels), so a passive addon would swallow clicks
+     * meant for buttons, tanks and slots below it. Offer the click to every child under the mouse until one handles it,
+     * then let the container handle the slots.
+     */
+    @Override
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        for (GuiEventListener child : this.children()) {
+            if (child.isMouseOver(event.x(), event.y()) && child.mouseClicked(event, doubleClick)) {
+                if (child.shouldTakeFocusAfterInteraction()) {
+                    this.setFocused(child);
+                }
+                if (event.button() == 1) { // same check as vanilla ContainerEventHandler
+                    this.setDragging(true);
+                }
+                return true;
+            }
+        }
+        this.skipChildClickDispatch = true;
+        try {
+            return super.mouseClicked(event, doubleClick);
+        } finally {
+            this.skipChildClickDispatch = false;
+        }
+    }
+
+    @Override
+    public Optional<GuiEventListener> getChildAt(double mouseX, double mouseY) {
+        return this.skipChildClickDispatch ? Optional.empty() : super.getChildAt(mouseX, mouseY);
     }
 
     /**
