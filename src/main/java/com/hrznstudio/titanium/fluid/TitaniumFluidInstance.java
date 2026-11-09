@@ -53,7 +53,7 @@ public class TitaniumFluidInstance {
             if (group != null) group.getTabList().add(item);
             return item;
         });
-        this.blockFluid = helper.registerGeneric(Registries.BLOCK, fluid, () -> new LiquidBlock((FlowingFluid) sourceFluid.get(), DeferredRegistryHelper.applyBlockRegistrationId(Block.Properties.of()).mapColor(MapColor.WATER).replaceable().noCollision().strength(100.0F).pushReaction(PushReaction.DESTROY).noLootTable().liquid().sound(SoundType.EMPTY)));
+        this.blockFluid = helper.registerGeneric(Registries.BLOCK, fluid, () -> new LiquidBlock((FlowingFluid) sourceFluid.get(), DeferredRegistryHelper.applyBlockRegistrationId(Block.Properties.of()).mapColor(MapColor.WATER).replaceable().noCollision().strength(100.0F).pushReaction(PushReaction.POPPED).noLootTable().liquid().sound(SoundType.EMPTY)));
     }
 
     public DeferredHolder<FluidType, FluidType> getFluidType() {

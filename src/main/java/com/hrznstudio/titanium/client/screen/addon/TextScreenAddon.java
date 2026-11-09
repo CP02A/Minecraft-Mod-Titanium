@@ -7,8 +7,8 @@
 
 package com.hrznstudio.titanium.client.screen.addon;
 
+import net.minecraft.network.chat.TextColor;
 import com.hrznstudio.titanium.client.screen.asset.IAssetProvider;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 
@@ -26,7 +26,7 @@ public class TextScreenAddon extends BasicScreenAddon {
     }
 
     public TextScreenAddon(String text, int posX, int posY, boolean shadow) {
-        this(text, posX, posY, shadow, ChatFormatting.DARK_GRAY.getColor());
+        this(text, posX, posY, shadow, TextColor.DARK_GRAY.getValue());
     }
 
     @Override

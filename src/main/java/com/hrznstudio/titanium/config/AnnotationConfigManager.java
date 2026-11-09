@@ -135,11 +135,11 @@ public class AnnotationConfigManager {
         }
 
         public static Type common(Class... classes) {
-            return new Type(ModConfig.Type.COMMON, classes);
+            return new Type(ModConfig.Type.LOCAL, classes);
         }
 
         public static Type server(Class... classes) {
-            return new Type(ModConfig.Type.SERVER, classes);
+            return new Type(ModConfig.Type.SYNCED, classes);
         }
 
         public static Type of(ModConfig.Type type, Class... classes) {

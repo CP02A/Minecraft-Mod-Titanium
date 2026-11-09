@@ -40,6 +40,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Clearable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
@@ -73,7 +74,7 @@ import java.util.Optional;
 
 public abstract class ActiveTile<T extends ActiveTile<T>> extends BasicTile<T> implements IScreenAddonProvider,
     ITickableBlockEntity<T>, MenuProvider, IButtonHandler, IFacingComponentHarness, IContainerAddonProvider,
-    IHasAssetProvider {
+    IHasAssetProvider, Clearable {
 
     private MultiInventoryComponent<T> multiInventoryComponent;
     private MultiProgressBarHandler<T> multiProgressBarHandler;
@@ -134,6 +135,17 @@ public abstract class ActiveTile<T extends ActiveTile<T>> extends BasicTile<T> i
     public void addInventory(InventoryComponent<T> handler) {
         if (multiInventoryComponent == null) multiInventoryComponent = new MultiInventoryComponent<>();
         multiInventoryComponent.add(handler.setComponentHarness(this.getSelf()));
+    }
+
+    @Override
+    public void clearContent() {
+        if (multiInventoryComponent != null) {
+            for (InventoryComponent<T> inventoryHandler : multiInventoryComponent.getInventoryHandlers()) {
+                for (int i = 0; i < inventoryHandler.getSlots(); i++) {
+                    inventoryHandler.setStackInSlot(i, ItemStack.EMPTY);
+                }
+            }
+        }
     }
 
     public void addProgressBar(ProgressBarComponent<T> progressBarComponent) {

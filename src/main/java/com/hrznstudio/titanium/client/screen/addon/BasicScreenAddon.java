@@ -26,7 +26,7 @@ public abstract class BasicScreenAddon implements IScreenAddon {
 
     @Override
     public boolean isMouseOver(double mouseX, double mouseY) {
-        Screen screen = Minecraft.getInstance().screen;
+        Screen screen = Minecraft.getInstance().gui.screen();
         if (screen instanceof AbstractContainerScreen abstractContainerScreen) {
             mouseX -= abstractContainerScreen.getLeftPos();
             mouseY -= abstractContainerScreen.getTopPos();

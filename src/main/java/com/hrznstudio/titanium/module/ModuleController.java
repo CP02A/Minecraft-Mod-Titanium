@@ -28,6 +28,7 @@ import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
+import net.neoforged.neoforge.data.event.GatherDataRegistryEntriesEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
@@ -96,6 +97,7 @@ public abstract class ModuleController {
         });
         EventManager.mod(GatherDataEvent.Client.class).process(this::addDataProvider).subscribe();
         EventManager.mod(GatherDataEvent.Server.class).process(this::addDataProvider).subscribe();
+        EventManager.mod(GatherDataRegistryEntriesEvent.class).process(this::addRegistryEntries).subscribe();
         EventManager.mod(FMLClientSetupEvent.class).process(fmlClientSetupEvent -> this.modPluginManager.execute(PluginPhase.CLIENT_SETUP)).subscribe();
         EventManager.mod(FMLCommonSetupEvent.class).process(fmlClientSetupEvent -> this.modPluginManager.execute(PluginPhase.COMMON_SETUP)).subscribe();
         EventManager.mod(BuildCreativeModeTabContentsEvent.class).process(buildCreativeModeTabContentsEvent -> {
@@ -117,6 +119,14 @@ public abstract class ModuleController {
     protected abstract void initModules();
 
     public void addDataProvider(GatherDataEvent event) {
+
+    }
+
+    /**
+     * Datapack registry entries (loot tables, advancements, recipes...) are bootstrapped through this event since 26.2.
+     * See {@link com.hrznstudio.titanium.datagenerator.loot.TitaniumLootTableProvider} for block loot tables.
+     */
+    public void addRegistryEntries(GatherDataRegistryEntriesEvent event) {
 
     }
 

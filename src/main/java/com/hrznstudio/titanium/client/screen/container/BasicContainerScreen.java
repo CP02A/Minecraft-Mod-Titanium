@@ -7,6 +7,7 @@
 
 package com.hrznstudio.titanium.client.screen.container;
 
+import net.minecraft.network.chat.TextColor;
 import com.hrznstudio.titanium.api.client.AssetTypes;
 import com.hrznstudio.titanium.api.client.IScreenAddon;
 import com.hrznstudio.titanium.client.screen.IScreenAddonConsumer;
@@ -15,7 +16,6 @@ import com.hrznstudio.titanium.client.screen.addon.WidgetScreenAddon;
 import com.hrznstudio.titanium.client.screen.asset.IAssetProvider;
 import com.hrznstudio.titanium.container.BasicAddonContainer;
 import com.hrznstudio.titanium.util.AssetUtil;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -25,7 +25,7 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import org.lwjgl.glfw.GLFW;
+import com.mojang.blaze3d.platform.InputConstants;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -119,7 +119,7 @@ public class BasicContainerScreen<T extends AbstractContainerMenu> extends Abstr
                         return true;
                     }
                     if (widget.isFocused()) {
-                        if (event.scancode() == 18) {
+                        if (this.minecraft.options.keyInventory.matches(event)) {
                             return true;
                         }
                     }
@@ -130,8 +130,8 @@ public class BasicContainerScreen<T extends AbstractContainerMenu> extends Abstr
     }
 
     private void checkForMouseDrag(int mouseX, int mouseY) {
-        int pressedButton = GLFW.glfwGetMouseButton(Minecraft.getInstance().getWindow().handle(), GLFW.GLFW_MOUSE_BUTTON_LEFT);
-        if (pressedButton == GLFW.GLFW_PRESS) {//Main Window
+        int pressedButton = InputConstants.MOUSE_BUTTON_LEFT;
+        if (Minecraft.getInstance().mouseHandler.isLeftPressed()) {//Main Window
             if (!this.isMouseDragging) {
                 this.isMouseDragging = true;
             } else {
@@ -198,7 +198,7 @@ public class BasicContainerScreen<T extends AbstractContainerMenu> extends Abstr
         if (container instanceof BasicAddonContainer addonContainer) {
             return addonContainer.getTitleColorFromProvider();
         }
-        return ChatFormatting.DARK_GRAY.getColor();
+        return TextColor.DARK_GRAY.getValue();
     }
 
     public float getTitleX(float xCenter) {

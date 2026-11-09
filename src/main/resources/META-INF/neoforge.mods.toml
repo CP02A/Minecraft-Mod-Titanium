@@ -29,6 +29,6 @@ A Lib
 [[dependencies.titanium]] #optional
 modId = "neoforge" #mandatory
 type = "required" #mandatory
-versionRange = "[26.1.2,)" #mandatory
+versionRange = "[26.3,)" #mandatory
 ordering = "NONE"
 side = "BOTH"

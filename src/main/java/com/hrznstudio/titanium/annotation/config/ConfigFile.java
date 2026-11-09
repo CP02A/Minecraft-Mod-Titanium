@@ -23,7 +23,7 @@ public @interface ConfigFile {
      *
      * @return the type
      */
-    ModConfig.Type type() default ModConfig.Type.COMMON;
+    ModConfig.Type type() default ModConfig.Type.LOCAL;
 
     /**
      * The file name of the config

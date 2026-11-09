@@ -14,6 +14,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -74,7 +75,7 @@ public class NetworkHandler {
 
     public void sendToNearby(Level world, BlockPos pos, int distance, Message message) {
         if (world instanceof ServerLevel serverLevel) {
-            var centre = pos.getCenter();
+            var centre = Vec3.atCenterOf(pos);
             PacketDistributor.sendToPlayersNear(serverLevel, null, centre.x, centre.y, centre.z, distance, wrap(message));
         }
     }

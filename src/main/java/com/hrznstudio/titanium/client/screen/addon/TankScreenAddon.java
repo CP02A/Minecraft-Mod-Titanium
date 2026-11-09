@@ -153,7 +153,7 @@ public class TankScreenAddon extends BasicScreenAddon {
         ItemStack carried = Minecraft.getInstance().player.containerMenu.getCarried();
         ResourceHandler<FluidResource> carriedHandler = getCarriedHandler(carried);
         if (carriedHandler != null) {
-            Screen screen = Minecraft.getInstance().screen;
+            Screen screen = Minecraft.getInstance().gui.screen();
             if (screen instanceof AbstractContainerScreen && ((AbstractContainerScreen) screen).getMenu() instanceof ILocatable) {
                 if (!isMouseOver(mouseX, mouseY))
                     return false;

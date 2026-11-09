@@ -22,11 +22,12 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.client.renderer.ShapeRenderer;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.BlockOutlineRenderState;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.inventory.MenuType;
@@ -75,17 +76,19 @@ public class TitaniumClient {
             VoxelShape shape = RayTraceUtils.rayTraceVoxelShape(traceResult, event.getLevel(), Minecraft.getInstance().player, 32, Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(false));
             BlockPos blockpos = event.getBlockPos();
             if (shape != null && !shape.isEmpty()) {
-                Camera info = event.getCamera();
-                double d0 = info.position().x();
-                double d1 = info.position().y();
-                double d2 = info.position().z();
-
-                BlockOutlineRenderState state = event.getLevelRenderState().blockOutlineRenderState;
-                int outlineColor = state != null && state.highContrast() ? -11010079 : ARGB.black(102);
-                event.addCustomRenderer((renderState, buffer, stack, translucentPass, levelRenderState) -> {
-                    VertexConsumer builder = buffer.getBuffer(RenderTypes.lines());
-                    ShapeRenderer.renderShape(stack, builder, shape, blockpos.getX() - d0,
-                        blockpos.getY() - d1, blockpos.getZ() - d2, outlineColor, Minecraft.getInstance().gameRenderer.getGameRenderState().windowRenderState.appropriateLineWidth);
+                event.addCustomRenderer((renderState, submitNodeCollector, poseStack, levelRenderState) -> {
+                    Vec3 cameraPos = levelRenderState.cameraRenderState.pos;
+                    boolean highContrast = renderState.highContrast();
+                    poseStack.pushPose();
+                    poseStack.translate(blockpos.getX() - cameraPos.x, blockpos.getY() - cameraPos.y, blockpos.getZ() - cameraPos.z);
+                    if (highContrast) {
+                        submitNodeCollector.submitShapeOutline(poseStack, shape, RenderTypes.secondaryBlockOutline(), -16777216, 7.0F, renderState.isTranslucent());
+                    }
+                    RenderType renderType = highContrast ? RenderTypes.linesDepthBias() : RenderTypes.linesTranslucent();
+                    int outlineColor = highContrast ? -11010079 : ARGB.black(102);
+                    submitNodeCollector.submitShapeOutline(poseStack, shape, renderType, outlineColor,
+                        Minecraft.getInstance().gameRenderer.gameRenderState().windowRenderState.appropriateLineWidth, renderState.isTranslucent());
+                    poseStack.popPose();
                     return true;
                 });
             }

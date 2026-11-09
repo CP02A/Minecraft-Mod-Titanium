@@ -18,7 +18,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import org.lwjgl.glfw.GLFW;
+import com.mojang.blaze3d.platform.InputConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,8 +83,8 @@ public abstract class ScreenAddonScreen extends Screen implements IScreenAddonCo
     public abstract List<IFactory<IScreenAddon>> guiAddons();
 
     private void checkForMouseDrag(int mouseX, int mouseY) {
-        int pressedButton = GLFW.glfwGetMouseButton(Minecraft.getInstance().getWindow().handle(), GLFW.GLFW_MOUSE_BUTTON_LEFT);
-        if (pressedButton == GLFW.GLFW_PRESS) {//Main Window
+        int pressedButton = InputConstants.MOUSE_BUTTON_LEFT;
+        if (Minecraft.getInstance().mouseHandler.isLeftPressed()) {//Main Window
             if (!this.isDragging()) {
                 this.setDragging(true);
             } else {

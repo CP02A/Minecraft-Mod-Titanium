@@ -18,7 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 import org.apache.commons.lang3.StringUtils;
-import org.lwjgl.glfw.GLFW;
+import com.mojang.blaze3d.platform.InputConstants;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -74,9 +74,9 @@ public class BasicItem extends Item {
     }
 
     public enum Key implements StringRepresentable {
-        SHIFT(GLFW.GLFW_KEY_RIGHT_SHIFT, GLFW.GLFW_KEY_LEFT_SHIFT),
-        CTRL(GLFW.GLFW_KEY_RIGHT_CONTROL, GLFW.GLFW_KEY_LEFT_CONTROL),
-        ALT(GLFW.GLFW_KEY_RIGHT_ALT, GLFW.GLFW_KEY_LEFT_ALT);
+        SHIFT(InputConstants.KEY_RSHIFT, InputConstants.KEY_LSHIFT),
+        CTRL(InputConstants.KEY_RCONTROL, InputConstants.KEY_LCONTROL),
+        ALT(InputConstants.KEY_RALT, InputConstants.KEY_LALT);
 
         final String name;
         final int[] keys;
@@ -88,7 +88,7 @@ public class BasicItem extends Item {
 
         public boolean isDown() {
             for (int key : keys)
-                if (GLFW.glfwGetKey(Minecraft.getInstance().getWindow().handle(), key) == GLFW.GLFW_PRESS) //Main windows
+                if (InputConstants.isKeyDown(key))
                     return true;
             return false;
         }

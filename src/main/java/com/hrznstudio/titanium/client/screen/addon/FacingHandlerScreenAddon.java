@@ -139,7 +139,7 @@ public class FacingHandlerScreenAddon extends BasicScreenAddon {
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 1) return false;
-        Screen screen = Minecraft.getInstance().screen;
+        Screen screen = Minecraft.getInstance().gui.screen();
         if (screen instanceof IScreenAddonConsumer && screen instanceof AbstractContainerScreen) {
             if (!isMouseOver(mouseX, mouseY))
                 return false;
@@ -185,7 +185,7 @@ public class FacingHandlerScreenAddon extends BasicScreenAddon {
 
                         @Override
                         public boolean mouseClicked(double mouseX, double mouseY, int mouse) {
-                            Screen gui = Minecraft.getInstance().screen;
+                            Screen gui = Minecraft.getInstance().gui.screen();
                             StateButtonInfo info = getStateInfo();
                             if (info != null && gui instanceof MenuAccess<?>) {
                                 if (!isMouseOver(mouseX, mouseY))
