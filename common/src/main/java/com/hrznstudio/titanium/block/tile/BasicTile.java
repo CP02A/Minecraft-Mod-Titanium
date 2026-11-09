@@ -102,9 +102,12 @@ public class BasicTile<T extends BasicTile<T>> extends BlockEntity implements IS
 
     @Override
     public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        // The client loads the packet through loadAdditional, which reads the synced fields from TitaniumData
         return ClientboundBlockEntityDataPacket.create(this, (be, reg) -> {
+            CompoundTag data = new CompoundTag();
+            NBTManager.getInstance().writeTileEntity(this, data);
             CompoundTag tag = new CompoundTag();
-            NBTManager.getInstance().writeTileEntity(this, tag);
+            tag.put("TitaniumData", data);
             return tag;
         });
     }

@@ -7,6 +7,7 @@
 
 package com.hrznstudio.titanium.api.client;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.hrznstudio.titanium.client.screen.asset.IAssetProvider;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.events.GuiEventListener;
@@ -82,6 +83,32 @@ public interface IScreenAddon extends GuiEventListener {
     default void mouseMoved(double xPos, double yPos) {}
 
     /**
+     * Minecraft 26.3 switched to SDL3, mouse buttons are numbered left = 1, middle = 2, right = 3. Titanium addons and
+     * button messages keep the previous numbering (left = 0, right = 1, middle = 2), which the int based mouse methods of
+     * this interface receive.
+     */
+    static int toLegacyButton(int button) {
+        return switch (button) {
+            case InputConstants.MOUSE_BUTTON_LEFT -> 0;
+            case InputConstants.MOUSE_BUTTON_RIGHT -> 1;
+            case InputConstants.MOUSE_BUTTON_MIDDLE -> 2;
+            default -> button - 1;
+        };
+    }
+
+    /**
+     * Reverse of {@link #toLegacyButton(int)}, to pass legacy button ids to vanilla widgets
+     */
+    static int fromLegacyButton(int button) {
+        return switch (button) {
+            case 0 -> InputConstants.MOUSE_BUTTON_LEFT;
+            case 1 -> InputConstants.MOUSE_BUTTON_RIGHT;
+            case 2 -> InputConstants.MOUSE_BUTTON_MIDDLE;
+            default -> button + 1;
+        };
+    }
+
+    /**
      * Called when a mouse button is clicked
      *
      * @param mouseX The mouse X coordinate where it was clicked
@@ -95,7 +122,7 @@ public interface IScreenAddon extends GuiEventListener {
 
     @Override
     default boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        return mouseClicked(event.x(), event.y(), event.button());
+        return mouseClicked(event.x(), event.y(), toLegacyButton(event.button()));
     }
 
     /**
@@ -112,7 +139,7 @@ public interface IScreenAddon extends GuiEventListener {
 
     @Override
     default boolean mouseReleased(MouseButtonEvent event) {
-        return mouseReleased(event.x(), event.y(), event.button());
+        return mouseReleased(event.x(), event.y(), toLegacyButton(event.button()));
     }
 
     /**
@@ -131,7 +158,7 @@ public interface IScreenAddon extends GuiEventListener {
 
     @Override
     default boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
-        return mouseDragged(event.x(), event.y(), event.button(), dragX, dragY);
+        return mouseDragged(event.x(), event.y(), toLegacyButton(event.button()), dragX, dragY);
     }
 
     /**

@@ -7,6 +7,7 @@
 
 package com.hrznstudio.titanium.client.screen.addon;
 
+import com.hrznstudio.titanium.api.client.IScreenAddon;
 import com.hrznstudio.titanium.client.screen.asset.IAssetProvider;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -62,17 +63,17 @@ public class WidgetScreenAddon extends BasicScreenAddon {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        return widget.mouseClicked(new MouseButtonEvent(mouseX, mouseY, new MouseButtonInfo(button, 0)), false);
+        return widget.mouseClicked(new MouseButtonEvent(mouseX, mouseY, new MouseButtonInfo(IScreenAddon.fromLegacyButton(button), 0)), false);
     }
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        return widget.mouseReleased(new MouseButtonEvent(mouseX, mouseY, new MouseButtonInfo(button, 0)));
+        return widget.mouseReleased(new MouseButtonEvent(mouseX, mouseY, new MouseButtonInfo(IScreenAddon.fromLegacyButton(button), 0)));
     }
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        return widget.mouseDragged(new MouseButtonEvent(mouseX, mouseY, new MouseButtonInfo(button, 0)), dragX, dragY);
+        return widget.mouseDragged(new MouseButtonEvent(mouseX, mouseY, new MouseButtonInfo(IScreenAddon.fromLegacyButton(button), 0)), dragX, dragY);
     }
 
     @Override
