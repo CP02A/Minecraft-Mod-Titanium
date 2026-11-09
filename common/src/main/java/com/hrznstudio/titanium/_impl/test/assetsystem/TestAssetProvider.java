@@ -81,7 +81,8 @@ public class TestAssetProvider implements IAssetProvider {
     public static final ITankAsset TANK = new ITankAsset() {
         @Override
         public int getFluidRenderPadding(Direction facing) {
-            return 3;
+            // The frame is part of the background texture, its interior is 16x58 at the top of the asset area
+            return facing == Direction.DOWN ? 2 : 0;
         }
 
         @Override

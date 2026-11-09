@@ -100,10 +100,29 @@ public class FacingHandlerScreenAddon extends BasicScreenAddon {
         guiGraphics.fill(guiX + getPosX() + offset, guiY + getPosY() + offset, guiX + getPosX() + getXSize() - offset, guiY + getPosY() + getYSize() - offset, handler.getColor());
         if (isClicked()) {
             //draw the overlay for the slots
-            AssetUtil.blit(guiGraphics, backgroundInfo.getIdentifier(), guiX + backgroundInfo.getInventoryPosition().x - 1, guiY + backgroundInfo.getInventoryPosition().y - 1, 56, 185, 162, 54);
-            AssetUtil.blit(guiGraphics, backgroundInfo.getIdentifier(), guiX + backgroundInfo.getInventoryPosition().x - 1, guiY + backgroundInfo.getInventoryPosition().y - 1 + 18 * 3 + 4, 56, 185, 162, 17);
-            AssetUtil.blit(guiGraphics, backgroundInfo.getIdentifier(), guiX + backgroundInfo.getInventoryPosition().x - 1, guiY + backgroundInfo.getInventoryPosition().y - 1 + 18 * 3 + 4 + 17, 56, 185 + 53, 162, 1);
+            int x = guiX + backgroundInfo.getInventoryPosition().x - 1;
+            int y = guiY + backgroundInfo.getInventoryPosition().y - 1;
+            if (IAssetProvider.DEFAULT_LOCATION.equals(backgroundInfo.getIdentifier())) {
+                AssetUtil.blit(guiGraphics, backgroundInfo.getIdentifier(), x, y, 56, 185, 162, 54);
+                AssetUtil.blit(guiGraphics, backgroundInfo.getIdentifier(), x, y + 18 * 3 + 4, 56, 185, 162, 17);
+                AssetUtil.blit(guiGraphics, backgroundInfo.getIdentifier(), x, y + 18 * 3 + 4 + 17, 56, 185 + 53, 162, 1);
+            } else {
+                // Custom backgrounds don't have the panel at the same texture coordinates, draw it instead
+                drawRecessedPanel(guiGraphics, x, y, 162, 54);
+                drawRecessedPanel(guiGraphics, x, y + 18 * 3 + 4, 162, 18);
+            }
         }
+    }
+
+    /**
+     * Draws the same recessed panel the default background texture uses to cover the player inventory
+     */
+    private static void drawRecessedPanel(GuiGraphicsExtractor guiGraphics, int x, int y, int width, int height) {
+        guiGraphics.fill(x, y, x + width, y + height, 0xFFDBDBDB);
+        guiGraphics.fill(x, y, x + width - 1, y + 1, 0xFF363637);
+        guiGraphics.fill(x, y, x + 1, y + height - 1, 0xFF363637);
+        guiGraphics.fill(x + 1, y + height - 1, x + width, y + height, 0xFFFFFFFF);
+        guiGraphics.fill(x + width - 1, y + 1, x + width, y + height, 0xFFFFFFFF);
     }
 
     @Override
