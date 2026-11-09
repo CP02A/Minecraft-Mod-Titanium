@@ -91,13 +91,4 @@ public class MachineTestTile extends MachineTile<MachineTestTile> {
         return this;
     }
 
-    @Override
-    @ParametersAreNonnullByDefault
-    public InteractionResult onActivated(Player player, InteractionHand hand, Direction facing, double hitX, double hitY, double hitZ) {
-        if (super.onActivated(player, hand, facing, hitX, hitY, hitZ) == InteractionResult.SUCCESS) {
-            openGui(player);
-            return InteractionResult.SUCCESS;
-        }
-        return InteractionResult.SUCCESS;
-    }
 }

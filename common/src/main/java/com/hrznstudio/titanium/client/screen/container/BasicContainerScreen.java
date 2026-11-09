@@ -7,6 +7,7 @@
 
 package com.hrznstudio.titanium.client.screen.container;
 
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.network.chat.TextColor;
 import com.hrznstudio.titanium.api.client.AssetTypes;
 import com.hrznstudio.titanium.api.client.IScreenAddon;
@@ -107,6 +108,21 @@ public class BasicContainerScreen<T extends AbstractContainerMenu> extends Abstr
                 guiGraphics.setComponentTooltipForNextFrame(this.font, iScreenAddon.getTooltipLines(), mouseX, mouseY);
             }
         }
+    }
+
+    /**
+     * Titanium places slots outside of the main background (bundles, side panels). Vanilla treats every click outside
+     * of the background as a click outside of the screen, which makes those slots impossible to take items from.
+     */
+    @Override
+    protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top) {
+        if (!super.hasClickedOutside(mouseX, mouseY, left, top)) return false;
+        for (Slot slot : this.menu.slots) {
+            if (slot.isActive() && this.isHovering(slot.x, slot.y, 16, 16, mouseX, mouseY)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

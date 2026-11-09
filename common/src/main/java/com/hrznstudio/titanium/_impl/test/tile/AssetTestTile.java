@@ -100,10 +100,11 @@ public class AssetTestTile extends PoweredTile<AssetTestTile>{
     @Override
     @ParametersAreNonnullByDefault
     public InteractionResult onActivated(Player player, InteractionHand hand, Direction facing, double hitX, double hitY, double hitZ) {
+        // SUCCESS means a fluid container interacted with the tanks, otherwise open the GUI
         if (super.onActivated(player, hand, facing, hitX, hitY, hitZ) == InteractionResult.SUCCESS) {
-            openGui(player);
             return InteractionResult.SUCCESS;
         }
+        openGui(player);
         return InteractionResult.SUCCESS;
     }
 

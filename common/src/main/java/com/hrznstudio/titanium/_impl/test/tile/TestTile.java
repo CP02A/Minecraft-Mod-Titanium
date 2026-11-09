@@ -139,12 +139,12 @@ public class TestTile extends PoweredTile<TestTile> implements IRedstoneReader {
     @Override
     @ParametersAreNonnullByDefault
     public InteractionResult onActivated(Player player, InteractionHand hand, Direction facing, double hitX, double hitY, double hitZ) {
-        InteractionResult result = super.onActivated(player, hand, facing, hitX, hitY, hitZ);
-        if (result == InteractionResult.SUCCESS) {
-            openGui(player);
+        // SUCCESS means a fluid container interacted with the tanks, otherwise open the GUI
+        if (super.onActivated(player, hand, facing, hitX, hitY, hitZ) == InteractionResult.SUCCESS) {
             return InteractionResult.SUCCESS;
         }
-        return result;
+        openGui(player);
+        return InteractionResult.SUCCESS;
     }
 
     @Nonnull
