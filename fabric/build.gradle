@@ -10,12 +10,29 @@ dependencies {
     implementation("net.fabricmc:fabric-loader:${fabric_loader_version}")
     implementation("net.fabricmc.fabric-api:fabric-api:${fabric_version}")
     implementation("fuzs.forgeconfigapiport:forgeconfigapiport-fabric:${forgeconfigapiport_version}")
+    // Standard Fabric energy API, nested in the jar (not relocated, the shared classes are what makes it interoperable)
+    implementation("teamreborn:energy:${tr_energy_version}")
+    include("teamreborn:energy:${tr_energy_version}")
     // Titanium uses the javax.annotation annotations, which Minecraft doesn't expose on Fabric
     compileOnly('com.google.code.findbugs:jsr305:3.0.2')
 
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-fabric-api:${jei_version}"
     localRuntime "mezz.jei:jei-${minecraft_version}-fabric:${jei_version}"
+}
+
+// Tests live in their own source sets and test mods, so they never end up in the published jar:
+// - gametest: headless server game tests (runGametest), safe to run on CI
+// - clientGametest: GUI tests that open the real game window (runClientGametest), need a display, so CI can skip them
+sourceSets {
+    gametest {
+        compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
+        runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.output
+    }
+    clientGametest {
+        compileClasspath += sourceSets.main.compileClasspath + sourceSets.main.output
+        runtimeClasspath += sourceSets.main.runtimeClasspath + sourceSets.main.output
+    }
 }
 
 loom {
@@ -27,6 +44,12 @@ loom {
     mods {
         "${mod_id}" {
             sourceSet sourceSets.main
+        }
+        "${mod_id}_gametest" {
+            sourceSet sourceSets.gametest
+        }
+        "${mod_id}_client_gametest" {
+            sourceSet sourceSets.clientGametest
         }
     }
     runs {
@@ -42,14 +65,72 @@ loom {
             ideConfigGenerated(true)
             runDir('runs/server')
         }
-        // Boots a server, runs the game tests (if any) and exits; used as a loading smoke test
+        // Boots a server with the gametest source set, runs the game tests and exits, failing if any test fails
         gametest {
             server()
+            source(sourceSets.gametest)
             setConfigName('Fabric Game Test Server')
             vmArg('-Dfabric-api.gametest')
+            vmArg("-Dfabric-api.gametest.report-file=${project.layout.buildDirectory.file('gametest/report.xml').get().asFile}")
             runDir('runs/gametest')
         }
+        // Opens the game window, runs the GUI tests (clicks, screenshots in runs/clientGametest/screenshots) and exits.
+        // Needs a display, so it isn't part of build/check and headless CI simply doesn't run it
+        clientGametest {
+            client()
+            source(sourceSets.clientGametest)
+            setConfigName('Fabric Client Game Test')
+            vmArg('-Dfabric.client.gametest')
+            runDir('runs/clientGametest')
+        }
     }
+}
+
+// NeoForge-only resources from common that have no meaning on Fabric
+processResources {
+    exclude 'META-INF/accesstransformer.cfg'
+}
+
+// Isolation rules 4 and 8: fails the build if the published jar contains anything that could collide with other mods
+def verifyJarContents = tasks.register('verifyJarContents') {
+    group = 'verification'
+    description = 'Checks that the Fabric jar only contains Titanium classes and the nested jars bundled on purpose'
+    def jarFile = tasks.named('jar').flatMap { it.archiveFile }
+    inputs.file(jarFile)
+    doLast {
+        def ownPackage = 'com/hrznstudio/titanium/'
+        // Nested on purpose and not relocated: shared interop APIs only work when every mod uses the same classes
+        def allowedNestedJars = [~/META-INF\/jars\/energy-[^\/]+\.jar/]
+        def neoForgeOnly = ['META-INF/accesstransformer.cfg', 'META-INF/neoforge.mods.toml']
+        def problems = []
+        new java.util.zip.ZipFile(jarFile.get().asFile).withCloseable { zip ->
+            zip.entries().each { entry ->
+                def name = entry.name
+                if (name.endsWith('.class') && !name.startsWith(ownPackage)) {
+                    problems << "class outside of ${ownPackage}: ${name}"
+                } else if (name.startsWith('META-INF/jars/') && !entry.directory && !allowedNestedJars.any { name ==~ it }) {
+                    problems << "unexpected nested jar: ${name}"
+                } else if (name in neoForgeOnly) {
+                    problems << "NeoForge-only file: ${name}"
+                }
+            }
+            // There are no mixins or injected interfaces, so there's nothing that could clash with other mods' added
+            // members. Adding either needs the conflict check from rule 4 first.
+            def modJson = new groovy.json.JsonSlurper().parse(zip.getInputStream(zip.getEntry('fabric.mod.json')))
+            if (modJson.mixins) {
+                problems << 'fabric.mod.json declares mixins: add the injected member conflict check (isolation rule 4) and update this task'
+            }
+            if (modJson.custom?.get('loom:injected_interfaces')) {
+                problems << 'fabric.mod.json declares injected interfaces: add the conflict check (isolation rule 4) and update this task'
+            }
+        }
+        if (!problems.isEmpty()) {
+            throw new GradleException("The Fabric jar breaks the isolation rules (docs/Isolation-rules.md):\n  " + problems.join('\n  '))
+        }
+    }
+}
+tasks.named('check') {
+    dependsOn(verifyJarContents)
 }
 
 tasks.register('publishCurseForge', net.darkhax.curseforgegradle.TaskPublishCurseForge) {

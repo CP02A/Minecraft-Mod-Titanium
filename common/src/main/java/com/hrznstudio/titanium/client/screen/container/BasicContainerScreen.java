@@ -147,14 +147,20 @@ public class BasicContainerScreen<T extends AbstractContainerMenu> extends Abstr
     }
 
     /**
-     * Titanium places slots outside of the main background (bundles, side panels). Vanilla treats every click outside
-     * of the background as a click outside of the screen, which makes those slots impossible to take items from.
+     * Titanium places slots, buttons and panels outside of the main background (bundles, side panels). Vanilla treats
+     * every click outside of the background as a click outside of the screen: slots there couldn't be used, and the
+     * item on the cursor was thrown out when the mouse was released over a button or panel there.
      */
     @Override
     protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top) {
         if (!super.hasClickedOutside(mouseX, mouseY, left, top)) return false;
         for (Slot slot : this.menu.slots) {
             if (slot.isActive() && this.isHovering(slot.x, slot.y, 16, 16, mouseX, mouseY)) {
+                return false;
+            }
+        }
+        for (IScreenAddon addon : this.addons) {
+            if (addon.isMouseOver(mouseX, mouseY)) {
                 return false;
             }
         }

@@ -16,6 +16,8 @@ import com.hrznstudio.titanium.fabric.TitaniumApiLookups;
 import com.hrznstudio.titanium.fabric.transfer.ContextItemEnergyStorage;
 import com.hrznstudio.titanium.fabric.transfer.FabricFluidStorage;
 import com.hrznstudio.titanium.fabric.transfer.FabricItemStorage;
+import com.hrznstudio.titanium.fabric.transfer.TREnergyComponentStorage;
+import com.hrznstudio.titanium.fabric.transfer.TREnergyItemStorage;
 import com.hrznstudio.titanium.item.EnergyItem;
 import com.hrznstudio.titanium.platform.services.ITransferHelper;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
@@ -37,6 +39,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import team.reborn.energy.api.EnergyStorage;
 
 import java.util.function.Supplier;
 
@@ -61,6 +64,9 @@ public class FabricTransferHelper implements ITransferHelper {
         }, blockEntityType);
         TitaniumApiLookups.ENERGY.registerForBlockEntities((blockEntity, direction) ->
             blockEntity instanceof PoweredTile<?> powered ? powered.getEnergyStorage() : null, blockEntityType);
+        // Same energy, exposed through the standard Fabric energy API for other mods
+        EnergyStorage.SIDED.registerForBlockEntities((blockEntity, direction) ->
+            blockEntity instanceof PoweredTile<?> powered ? TREnergyComponentStorage.of(powered.getEnergyStorage()) : null, blockEntityType);
     }
 
     @Override
@@ -72,6 +78,7 @@ public class FabricTransferHelper implements ITransferHelper {
     public void registerEnergyItem(String modId, Supplier<? extends Item> item) {
         if (item.get() instanceof EnergyItem energyItem) {
             TitaniumApiLookups.ENERGY_ITEM.registerForItems((stack, context) -> new ContextItemEnergyStorage(context, energyItem), energyItem);
+            EnergyStorage.ITEM.registerForItems((stack, context) -> new TREnergyItemStorage(context, energyItem), energyItem);
         }
     }
 
@@ -94,13 +101,33 @@ public class FabricTransferHelper implements ITransferHelper {
     @Override
     public int pushEnergy(Level level, BlockPos targetPos, Direction targetSide, IEnergyStorage storage, int maxAmount) {
         IEnergyStorage target = TitaniumApiLookups.ENERGY.find(level, targetPos, targetSide);
-        if (target == null || !target.canReceive()) return 0;
+        if (target == null) {
+            // Not a Titanium storage, fall back to the standard Fabric energy API
+            EnergyStorage standard = EnergyStorage.SIDED.find(level, targetPos, targetSide);
+            return standard == null ? 0 : pushEnergy(standard, storage, maxAmount);
+        }
+        if (!target.canReceive()) return 0;
         int available = storage.extractEnergy(maxAmount, true);
         if (available <= 0) return 0;
         int accepted = target.receiveEnergy(available, true);
         if (accepted <= 0) return 0;
         int extracted = storage.extractEnergy(accepted, false);
         return target.receiveEnergy(extracted, false);
+    }
+
+    private static int pushEnergy(EnergyStorage target, IEnergyStorage storage, int maxAmount) {
+        if (!target.supportsInsertion()) return 0;
+        int available = storage.extractEnergy(maxAmount, true);
+        if (available <= 0) return 0;
+        try (Transaction transaction = Transaction.openOuter()) {
+            int accepted = (int) Math.min(target.insert(available, transaction), available);
+            if (accepted > 0 && storage.extractEnergy(accepted, true) == accepted) {
+                storage.extractEnergy(accepted, false);
+                transaction.commit();
+                return accepted;
+            }
+        }
+        return 0;
     }
 
     @Override

@@ -1,0 +1,18 @@
+{
+    "schemaVersion": 1,
+    "id": "titanium_client_gametest",
+    "version": "1.0.0",
+    "name": "Titanium Client Game Tests",
+    "description": "GUI tests of the Titanium Fabric port, only loaded by the clientGametest run",
+    "license": "LGPL-3.0-only",
+    "environment": "client",
+    "entrypoints": {
+        "fabric-client-gametest": [
+            "com.hrznstudio.titanium.fabric.clientgametest.TitaniumGuiClientGameTest"
+        ]
+    },
+    "depends": {
+        "titanium": "*",
+        "fabric-client-gametest-api-v1": "*"
+    }
+}

@@ -1,0 +1,23 @@
+{
+    "schemaVersion": 1,
+    "id": "titanium_gametest",
+    "version": "1.0.0",
+    "name": "Titanium Game Tests",
+    "description": "Game tests of the Titanium Fabric port, only loaded by the gametest run",
+    "license": "LGPL-3.0-only",
+    "environment": "*",
+    "entrypoints": {
+        "main": [
+            "com.hrznstudio.titanium.fabric.gametest.TitaniumGameTestMod"
+        ],
+        "fabric-gametest": [
+            "com.hrznstudio.titanium.fabric.gametest.TrEnergyGameTests",
+            "com.hrznstudio.titanium.fabric.gametest.TransferGameTests"
+        ]
+    },
+    "depends": {
+        "titanium": "*",
+        "team_reborn_energy": "*",
+        "fabric-gametest-api-v1": "*"
+    }
+}

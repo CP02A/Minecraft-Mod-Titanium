@@ -16,7 +16,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 
 /**
- * Fabric has no standard energy API, Titanium exposes its energy storages through these lookups.
+ * Titanium's own energy lookups, with Titanium's int based {@link IEnergyStorage}. The same storages are also exposed
+ * through the standard Team Reborn Energy API ({@code team.reborn.energy.api.EnergyStorage#SIDED} and {@code #ITEM}),
+ * which is what other Fabric mods should use.
  */
 public final class TitaniumApiLookups {
 

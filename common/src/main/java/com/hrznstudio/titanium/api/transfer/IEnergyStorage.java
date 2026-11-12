@@ -9,7 +9,7 @@ package com.hrznstudio.titanium.api.transfer;
 
 /**
  * Loader independent energy storage. Exposed to other mods through the NeoForge energy capability and, on Fabric,
- * through {@code TitaniumApiLookups.ENERGY} by the platform modules.
+ * through {@code TitaniumApiLookups.ENERGY} and the Team Reborn Energy API by the platform modules.
  */
 public interface IEnergyStorage {
 

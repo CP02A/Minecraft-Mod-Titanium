@@ -19,11 +19,12 @@ public record StoredEnergyAttachment(int stored, int capacity, int in, int out) 
         this(0, energyItem.getCapacity(), energyItem.getInput(), energyItem.getOutput());
     }
 
+    // Empty items and items that only receive or only send energy have zero values, only the capacity must be positive
     public static final Codec<StoredEnergyAttachment> CODEC = RecordCodecBuilder.create(in -> in.group(
-        ExtraCodecs.POSITIVE_INT.fieldOf("stored").forGetter(StoredEnergyAttachment::stored),
+        ExtraCodecs.NON_NEGATIVE_INT.fieldOf("stored").forGetter(StoredEnergyAttachment::stored),
         ExtraCodecs.POSITIVE_INT.fieldOf("capacity").forGetter(StoredEnergyAttachment::capacity),
-        ExtraCodecs.POSITIVE_INT.fieldOf("in").forGetter(StoredEnergyAttachment::in),
-        ExtraCodecs.POSITIVE_INT.fieldOf("out").forGetter(StoredEnergyAttachment::out)
+        ExtraCodecs.NON_NEGATIVE_INT.fieldOf("in").forGetter(StoredEnergyAttachment::in),
+        ExtraCodecs.NON_NEGATIVE_INT.fieldOf("out").forGetter(StoredEnergyAttachment::out)
     ).apply(in, StoredEnergyAttachment::new));
     public static RegistryEntry<DataComponentType<?>, DataComponentType<StoredEnergyAttachment>> TYPE;
 }
